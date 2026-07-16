@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Deploy Helper 프로토타입</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; height:100%; }
+body { font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; background:#F4F6FA; color:#1D2433; font-size:14px; -webkit-font-smoothing:antialiased; }
+.bodyrow { display:flex; min-height:100vh; }
+
+/* ---- Icons (Google Material Symbols tone) ---- */
+.msi { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:18px; line-height:1; letter-spacing:normal; text-transform:none; display:inline-block; white-space:nowrap; word-wrap:normal; direction:ltr; vertical-align:middle; -webkit-font-feature-settings:'liga'; font-feature-settings:'liga'; -webkit-font-smoothing:antialiased; }
+.iconbtn { display:inline-flex; align-items:center; justify-content:center; }
+
+/* ---- Sidebar ---- */
+.lnb { width:15%; min-width:230px; max-width:280px; flex-shrink:0; background:#FFFFFF; border-right:1px solid #E4E7EC; padding:14px 12px; }
+.lnbtop { display:flex; justify-content:flex-end; padding:4px 6px 16px; color:#98A2B3; }
+.lnbitem { display:flex; align-items:center; gap:10px; padding:10px 14px; font-size:14px; color:#6B7280; border-radius:8px; cursor:pointer; margin-bottom:2px; }
+.lnbitem svg { flex-shrink:0; }
+.lnbitem.active { color:#2F6FED; font-weight:600; background:#EAF1FE; }
+
+.content { flex:1; display:flex; flex-direction:column; min-width:0; }
+.section { padding:32px 5% 48px; flex:1; width:100%; }
+.h1 { font-size:24px; font-weight:700; margin:0 0 8px; color:#1D2433; }
+.sub { font-size:14px; color:#8A94A6; margin:0 0 30px; }
+.row { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+.label { font-size:14px; color:#6B7280; width:190px; flex-shrink:0; }
+.box { flex:1; border:1px solid #E4E7EC; border-radius:10px; padding:12px 16px; font-size:14px; background:#FAFBFC; min-height:46px; display:flex; align-items:center; gap:10px; }
+.chip { border:1px solid #E4E7EC; border-radius:8px; padding:7px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:5px; background:#fff; color:#1D2433; }
+.chip.sel { background:#EAF1FE; color:#2F6FED; border-color:#B7D0FB; }
+.badge { font-size:12px; padding:4px 10px; border-radius:999px; font-weight:600; display:inline-block; }
+.footer { display:flex; justify-content:flex-end; padding:20px 5%; border-top:1px solid #E4E7EC; background:#FFFFFF; }
+.btn { background:#FFFFFF; color:#2F6FED; border:1px solid #B7D0FB; border-radius:8px; padding:10px 18px; font-size:13px; cursor:pointer; font-weight:600; white-space:nowrap; }
+
+/* ---- Cards ---- */
+.card { background:#FFFFFF; border:1px solid #E4E7EC; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,0.04),0 1px 3px rgba(16,24,40,0.05); }
+.metric { padding:20px 22px; flex:1; }
+.micon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+.mlabel { font-size:13px; color:#6B7280; margin:0 0 6px; }
+.mval { font-size:28px; font-weight:700; margin:0; color:#1D2433; }
+
+/* ---- Table ---- */
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th { text-align:left; font-size:11px; color:#98A2B3; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; padding:12px 14px; border-bottom:1px solid #E4E7EC; white-space:nowrap; }
+td { padding:14px; color:#1D2433; }
+tr.trow { border-bottom:1px solid #EEF0F3; }
+tr.trow:hover { background:#FAFBFC; }
+#history-tbody tr.trow:hover, #org-tbody tr.trow:hover { background:none; }
+tr.trow.selected { background:#EAF1FE; }
+#license-tbody tr.trow, #model-tbody tr.trow { cursor:pointer; }
+.dots { color:#98A2B3; font-weight:700; text-align:right; }
+.thlabel { display:flex; align-items:center; gap:4px; cursor:pointer; user-select:none; }
+.arrow { font-size:12px; }
+.sectionhead { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.sectionhead h3 { font-size:16px; font-weight:700; margin:0; color:#1D2433; }
+.linklike { margin-left:auto; color:#2F6FED; font-size:13px; font-weight:600; text-decoration:none; cursor:pointer; }
+
+.optpanel { border:1px solid #E4E7EC; border-radius:10px; background:#fff; margin-top:6px; }
+.opt { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid #EEF0F3; cursor:pointer; }
+.opt:last-child { border-bottom:none; }
+.optmeta { flex:1; min-width:0; font-size:13px; }
+.radiolabel { display:flex; align-items:center; gap:9px; font-size:14px; cursor:pointer; }
+select, input[type=text], input[type=date] { font-family:inherit; font-size:14px; padding:10px 12px; border:1px solid #E4E7EC; border-radius:8px; background:#fff; color:#1D2433; }
+input[type=checkbox], input[type=radio] { width:18px; height:18px; accent-color:#2F6FED; cursor:pointer; flex-shrink:0; }
+textarea { font-family:inherit; font-size:14px; padding:12px 14px; border:1px solid #E4E7EC; border-radius:8px; background:#fff; width:100%; resize:vertical; }
+.field { margin-bottom:22px; max-width:640px; }
+.fieldlabel { font-size:14px; color:#1D2433; margin:0 0 10px; font-weight:600; }
+.extgroup { border:1px solid #E4E7EC; border-radius:12px; margin-bottom:16px; }
+.extgroup-head { display:flex; align-items:center; gap:10px; padding:14px 18px; background:#F4F6FA; font-size:14px; font-weight:600; color:#1D2433; border-radius:11px 11px 0 0; }
+.extgroup-head.off { color:#ADB3BD; }
+.extgroup-body { padding:18px; background:#fff; }
+.extgroup-body .field:last-child { margin-bottom:0; }
+.divider { border:none; border-top:1px solid #E4E7EC; margin:26px 0; max-width:640px; }
+.checklabel { display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; margin-bottom:10px; }
+.btn-block { display:block; width:100%; max-width:640px; background:#2F6FED; color:#fff; border:none; border-radius:10px; padding:15px; font-size:14px; font-weight:700; letter-spacing:0.3px; cursor:pointer; text-transform:uppercase; margin-top:10px; }
+.ext-btn { border:1px solid #E4E7EC; border-radius:8px; padding:10px 18px; font-size:13px; cursor:pointer; background:#fff; color:#1D2433; font-family:inherit; white-space:nowrap; }
+.ext-btn.sel { background:#344054; color:#fff; border-color:#344054; }
+.editext-btn { border:1px solid #E4E7EC; border-radius:8px; padding:10px 14px; font-size:13px; cursor:pointer; background:#fff; color:#1D2433; font-family:inherit; white-space:nowrap; }
+.editext-btn.sel { background:#344054; color:#fff; border-color:#344054; }
+.warnbox { display:none; background:#FEF2F2; color:#B91C1C; border-radius:10px; padding:12px 16px; font-size:13px; margin:0 0 18px; max-width:640px; }
+.hint { font-size:13px; color:#8A94A6; margin:0 0 14px; line-height:1.5; }
+.summarycard { border:1px solid #E4E7EC; border-radius:10px; padding:16px 18px; background:#FAFBFC; max-width:640px; margin-bottom:18px; }
+.summarycard p { margin:0 0 6px; font-size:13px; }
+.summarycard p:last-child { margin-bottom:0; }
+.combowrap { position:relative; }
+
+.kvgroup { margin-bottom:18px; border:1px solid #E4E7EC; border-radius:12px; background:#FAFBFC; padding:16px 18px; }
+.kvgrouptitle { font-size:11px; color:#2F6FED; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin:0 0 12px; padding-bottom:10px; border-bottom:1px solid #E4E7EC; }
+.kvrow { display:flex; gap:14px; padding:8px 0; border-bottom:1px solid #EEF0F3; font-size:13px; }
+.kvrow:last-child { border-bottom:none; padding-bottom:0; }
+.kvlabel { width:130px; flex-shrink:0; color:#8A94A6; }
+.kvvalue { flex:1; color:#1D2433; word-break:break-all; }
+
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(16,24,40,.45); z-index:50; align-items:center; justify-content:center; }
+.modal-box { width:440px; max-width:92vw; padding:28px 30px; position:relative; }
+.modal-close { position:absolute; top:14px; right:16px; border:none; background:none; font-size:18px; cursor:pointer; color:#8A94A6; }
+.modal-title { font-size:19px; font-weight:700; color:#1D2433; margin:0 0 10px; padding-right:24px; }
+.pagebtn { background:#fff; color:#8A94A6; border:1px solid #E4E7EC; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:600; font-family:inherit; }
+.pagebtn:hover:not(:disabled) { color:#6B7280; border-color:#D0D5DD; }
+.pagebtn:disabled { color:#D0D5DD; cursor:not-allowed; }
+
+.masterdetail { display:flex; align-items:flex-start; }
+.list-wrap { flex:1; min-width:0; }
+.detail-wrap { flex:0 0 0%; width:0; opacity:0; overflow:hidden; flex-shrink:0; transition:flex-basis .28s cubic-bezier(.4,0,.2,1), opacity .2s ease; }
+.detail-wrap.open { flex:0 0 34%; width:auto; opacity:1; margin-left:16px; }
+.detail-wrap .card { width:100%; }
+.detail-close { position:absolute; top:18px; right:18px; border:none; background:none; font-size:16px; cursor:pointer; color:#8A94A6; }
+.crumb-link { cursor:pointer; }
+.crumb-link:hover { color:#2F6FED; text-decoration:underline; }
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#1D2433; color:#fff; padding:14px 24px; border-radius:10px; font-size:14px; font-weight:600; box-shadow:0 8px 24px rgba(16,24,40,.25); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:60; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="bodyrow">
+  <div class="lnb">
+    <div class="lnbtop">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+    <div class="lnbitem" data-page="status">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+      라이선스 관리
+    </div>
+    <div class="lnbitem" data-page="model">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2 17 6v8L10 18 3 14V6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 6l7 4 7-4M10 10v8" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      모델 관리
+    </div>
+    <div class="lnbitem" data-page="org">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="9" height="14" rx="1" stroke="currentColor" stroke-width="1.6"/><path d="M7 7h1M11 7h1M7 10h1M11 10h1M7 13h1M11 13h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13 17h3v-6l-3-2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      조직 관리
+    </div>
+    <div class="lnbitem" data-page="history">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      이력 관리
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="section" id="page-status">
+      <p class="h1">라이선스 관리</p>
+      <p class="sub">발급된 라이선스를 조회하고, 인증·수정·모델 생성까지 한 화면에서 처리합니다</p>
+      <div style="display:flex;gap:16px;margin-bottom:24px">
+        <div class="card metric">
+          <div class="micon" style="background:#EAF1FE;color:#2F6FED"><span class="msi">description</span></div>
+          <p class="mlabel">전체 발급 라이선스</p><p class="mval" id="m-total">-</p>
+        </div>
+        <div class="card metric">
+          <div class="micon" style="background:#FEF3C7;color:#B45309"><span class="msi">warning</span></div>
+          <p class="mlabel">30일 이내 만료 예정</p><p class="mval" id="m-30">-</p>
+        </div>
+        <div class="card metric">
+          <div class="micon" style="background:#FEE2E2;color:#B91C1C"><span class="msi">schedule</span></div>
+          <p class="mlabel">이번 주 만료 예정</p><p class="mval" id="m-7">-</p>
+        </div>
+      </div>
+
+      <div class="masterdetail">
+        <div class="list-wrap">
+        <div class="card" style="padding:20px 22px">
+          <div class="sectionhead">
+            <h3>생성 목록</h3>
+            <button type="button" class="btn" id="new-issue-btn" style="margin-left:auto;background:#2F6FED;color:#fff;border:none">+ 신규 생성</button>
+          </div>
+          <div class="row" style="margin-bottom:16px;gap:10px">
+            <div class="box" style="flex:1">
+              <span class="msi" style="color:#98A2B3">search</span> <input id="search-input" type="text" placeholder="고객사명 검색" style="border:none;background:transparent;flex:1;outline:none;padding:0">
+            </div>
+            <div class="box" style="flex:1">
+              <span class="msi" style="color:#98A2B3">search</span> <input id="search-creator-input" type="text" placeholder="생성자 검색" style="border:none;background:transparent;flex:1;outline:none;padding:0">
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>고객사명</th>
+                <th>설명</th>
+                <th><span class="thlabel" data-key="issued">발급일자 <span class="msi arrow sorticon" style="font-size:15px">unfold_more</span></span></th>
+                <th><span class="thlabel" data-key="expiry">만료일자 <span class="msi arrow sorticon" style="font-size:15px">unfold_more</span></span></th>
+                <th><span class="thlabel" data-key="dday">상태 <span class="msi arrow sorticon" style="font-size:15px">unfold_more</span></span></th>
+                <th>생성자</th>
+                <th>라이선스 검증</th>
+                <th>테스트용</th>
+                <th style="text-align:right">인증</th>
+                <th style="text-align:right">업데이트</th>
+                <th style="text-align:right">모델 생성</th>
+              </tr>
+            </thead>
+            <tbody id="license-tbody"></tbody>
+          </table>
+          <p style="font-size:12px;color:#98A2B3;margin:14px 0 0">컬럼 헤더를 클릭하면 정렬 기준/방향이 바뀌고, 행을 클릭하면 우측에 상세 정보가 표시됩니다.</p>
+          <div style="display:flex;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px">
+            <div style="flex:1"></div>
+            <div style="display:flex;align-items:center;gap:10px" id="pagination-controls"></div>
+            <div style="flex:1;display:flex;justify-content:flex-end">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6B7280">
+                페이지당 표시
+                <select id="page-size-select" style="padding:6px 10px;font-size:13px">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <div class="detail-wrap" id="detail-wrap">
+          <div class="card" id="detail-panel" style="padding:24px 26px;position:sticky;top:20px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="page-issue" style="display:none">
+      <div style="max-width:820px;margin:0 auto">
+      <p class="h1" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="crumb-link" data-crumb="status">라이선스 관리</span>
+        <span class="msi" style="color:#D0D5DD;font-size:16px">chevron_right</span>
+        <span>라이선스 생성</span>
+      </p>
+      <p class="sub">신규 라이선스를 생성합니다</p>
+      <div class="card" style="padding:28px 32px">
+
+      <div class="field combowrap">
+        <p class="fieldlabel">고객사 <span style="color:#B91C1C">*</span></p>
+        <input type="text" id="org-search-input" placeholder="고객사명을 검색하세요" autocomplete="off" style="width:100%">
+        <div class="optpanel" id="org-search-panel" style="position:absolute;left:0;right:0;z-index:5;display:none;max-height:220px;overflow:auto"></div>
+      </div>
+
+      <div class="field">
+        <p class="fieldlabel">딜 코드 <span style="color:#8A94A6;font-weight:400">(Pipedrive)</span></p>
+        <input type="text" placeholder="0000" style="width:100%">
+      </div>
+
+      <div class="field" style="display:flex;gap:20px;max-width:640px">
+        <div style="flex:1">
+          <p class="fieldlabel">시작일</p>
+          <input type="date" id="start-date-input" style="width:100%">
+        </div>
+        <div style="flex:1">
+          <p class="fieldlabel">종료일</p>
+          <div style="display:flex;gap:8px">
+            <input type="date" id="end-date-input" style="flex:1">
+            <button type="button" class="btn" id="perm-btn">영구</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <p class="fieldlabel">설명</p>
+        <textarea rows="2" disabled placeholder="서버에서 자동 생성됩니다" style="background:#F1F2F4;color:#8A94A6"></textarea>
+      </div>
+
+      <div class="field">
+        <p class="fieldlabel">메모</p>
+        <textarea id="issue-memo-input" rows="3"></textarea>
+      </div>
+
+      <hr class="divider">
+      <p class="fieldlabel">확장 기능</p>
+      <p class="hint">라이선스에서 선택하지 않은 확장 기능은 모델을 생성해도 SDK에서 사용할 수 없습니다. 고객사 요구사항에 없는 기능은 선택하지 않는 것이 원칙입니다.</p>
+      <div style="display:flex;gap:10px;margin-bottom:4px">
+        <button type="button" class="ext-btn sel" data-ext="detect">Detect Extension</button>
+        <button type="button" class="ext-btn sel" data-ext="feature">Feature Extension</button>
+        <button type="button" class="ext-btn sel" data-ext="attribute">Attribute Extension</button>
+        <button type="button" class="ext-btn sel" data-ext="antispoof">Antispoofing Extension</button>
+      </div>
+
+      <hr class="divider">
+      <p class="fieldlabel">암호화 방식</p>
+      <p class="hint">AES는 Linux, SEED는 AOS(Android)에 권장됩니다. 모델 생성 시 선택하는 암호화 방식과 반드시 동일해야 합니다.</p>
+      <div style="display:flex;gap:24px;margin-bottom:14px">
+        <label class="radiolabel"><input type="radio" name="cipher" id="cipher-aes" checked>AES</label>
+        <label class="radiolabel"><input type="radio" name="cipher" id="cipher-seed">SEED</label>
+      </div>
+
+      <hr class="divider">
+      <p class="fieldlabel">라이선스 검증</p>
+      <p class="hint">체크 시 플랫폼별 인증 정보를 등록해 무단 복제·재배포를 방지합니다.</p>
+      <label class="checklabel"><input type="checkbox" id="checkfile-toggle" checked>라이선스 검증 사용</label>
+      <div class="warnbox" id="checkfile-warning"><span class="msi" style="font-size:15px;vertical-align:-3px;margin-right:2px">warning</span>해제 시 사전 승인이 필요하며, 무단 배포 시 어뷰징 위험이 있습니다.</div>
+
+      <div id="platform-section" style="margin:6px 0 4px 4px;padding-left:18px;border-left:2px solid #E4E7EC">
+        <p class="fieldlabel" style="font-size:13px">플랫폼 선택 <span style="color:#8A94A6;font-weight:400">(하나만 선택 가능)</span></p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button type="button" class="ext-btn" data-platform="web">Web</button>
+          <button type="button" class="ext-btn" data-platform="ios">App (iOS)</button>
+          <button type="button" class="ext-btn" data-platform="aos">App (AOS)</button>
+          <button type="button" class="ext-btn" data-platform="server">Server &amp; Native</button>
+        </div>
+        <div id="platform-fields"></div>
+      </div>
+
+      <hr class="divider">
+      <label class="checklabel"><input type="checkbox" id="issue-test-toggle">테스트용으로 생성</label>
+
+      <button class="btn-block" id="issue-submit-btn"><span class="msi" style="font-size:16px;vertical-align:-3px;margin-right:4px">download</span>생성 및 다운로드</button>
+      </div>
+      </div>
+    </div>
+
+    <div class="section" id="page-model" style="display:none">
+      <p class="h1">모델 관리</p>
+      <p class="sub">생성된 모델을 조회하고, CR 파일 기반으로 새 모델을 생성합니다</p>
+      <div class="masterdetail">
+        <div class="list-wrap">
+        <div class="card" style="padding:20px 22px">
+        <div class="sectionhead">
+          <h3>생성 목록</h3>
+          <button type="button" class="btn" id="new-model-btn" style="margin-left:auto;background:#2F6FED;color:#fff;border:none">+ 신규 생성</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>고객사명</th>
+              <th>DNN Type</th>
+              <th>확장 기능</th>
+              <th>암호화 방식</th>
+              <th>생성자</th>
+              <th>생성일자</th>
+              <th style="text-align:right">다운로드</th>
+            </tr>
+          </thead>
+          <tbody id="model-tbody"></tbody>
+        </table>
+        <p style="font-size:12px;color:#98A2B3;margin:14px 0 0">행을 클릭하면 우측에 상세 정보가 표시됩니다.</p>
+        </div>
+        </div>
+
+        <div class="detail-wrap" id="model-detail-wrap">
+          <div class="card" id="model-detail-panel" style="padding:24px 26px;position:sticky;top:20px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="page-modelcreate" style="display:none">
+      <div style="max-width:820px;margin:0 auto">
+      <p class="h1" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="crumb-link" id="modelcreate-crumb-prefix" data-crumb="model">모델 관리</span>
+        <span class="msi" style="color:#D0D5DD;font-size:16px">chevron_right</span>
+        <span>모델 생성</span>
+      </p>
+      <p class="sub">CR 파일을 업로드하면 아래 항목이 자동으로 채워집니다.</p>
+      <div class="card" style="padding:28px 32px">
+
+      <div class="field">
+        <p class="fieldlabel">CR 파일 업로드</p>
+        <div class="box" id="upload-box" style="border-style:dashed;cursor:pointer">
+          ⬆️ <span id="upload-label">클릭하여 업로드 (프로토타입: 클릭 시뮬레이션)</span>
+        </div>
+      </div>
+
+      <div id="model-locked" style="font-size:13px;color:#8A94A6;border:1px dashed #E4E7EC;border-radius:10px;padding:14px;text-align:center;max-width:640px">
+        라이선스 파일을 업로드하면 확장 기능 · 암호화 방식 · DNN Type · 모델 버전 선택 항목이 나타납니다.
+      </div>
+
+      <div id="model-fields" style="display:none">
+        <div class="field">
+          <p class="fieldlabel">확장 기능</p>
+          <div class="box" id="model-ext-summary"></div>
+        </div>
+        <div class="field">
+          <p class="fieldlabel">암호화 방식</p>
+          <div class="box">
+            <span id="model-cipher-summary">AES</span>
+            <span class="badge" style="background:#F4F6FA;color:#6B7280;margin-left:auto">자동 인식됨 · 읽기전용</span>
+          </div>
+        </div>
+        <div class="field">
+          <p class="fieldlabel">DNN Type</p>
+          <select id="dnn-select" style="width:100%">
+            <option value="OPENCV">OPENCV</option>
+            <option value="NCNN" selected>NCNN</option>
+            <option value="TENSORRT">TENSORRT</option>
+            <option value="TORCH">TORCH</option>
+          </select>
+          <p class="hint" style="margin-top:10px">NCNN: Android · 저사양/CPU 장비, TENSORRT: NVIDIA GPU 서버, TORCH: Windows·Server·키오스크, OPENCV: 레거시(사용 여부 확인 필요)</p>
+        </div>
+
+        <hr class="divider">
+        <p class="fieldlabel">확장 기능 · 하위 모델별 버전 선택</p>
+        <p class="hint">DNN Type 변경 시 목록이 자동으로 재검증됩니다.</p>
+        <div id="ext-rows"></div>
+        <p class="hint" style="margin:14px 0 0;padding-top:14px;border-top:1px solid #E4E7EC">
+          라이선스 파일 업로드 시 확장 기능과 암호화 방식이 자동으로 반영되고, 모델 버전은 최신 버전 표시와 함께 여러 버전을 한 번에 비교할 수 있는 목록으로 제공됩니다. DNN Type을 바꾸면 호환성이 즉시 재검증됩니다.
+        </p>
+
+        <button class="btn-block" id="model-complete-btn"><span class="msi" style="font-size:16px;vertical-align:-3px;margin-right:4px">download</span>모델 다운로드</button>
+      </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="section" id="page-org" style="display:none">
+      <p class="h1">조직 관리</p>
+      <p class="sub">고객사 정보를 등록·수정·삭제하며, 라이선스·모델 발급의 기준이 되는 조직을 관리합니다</p>
+      <div class="card" style="padding:20px 22px">
+        <div class="sectionhead">
+          <h3>조직 목록</h3>
+          <button type="button" class="btn" id="new-org-btn" style="margin-left:auto;background:#2F6FED;color:#fff;border:none">+ 신규 생성</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>고객사명</th><th>딜 코드 (Pipedrive)</th><th>설명</th><th>생성일시</th><th>담당자</th><th style="text-align:right">업데이트</th><th style="text-align:right">삭제</th></tr></thead>
+          <tbody id="org-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="page-history" style="display:none">
+      <p class="h1">이력 관리</p>
+      <p class="sub">라이선스·모델·조직의 생성·수정·삭제 이력을 한곳에서 확인합니다</p>
+      <div class="card" style="padding:20px 22px">
+        <div class="sectionhead">
+          <h3>이력 목록</h3>
+        </div>
+        <table>
+          <thead><tr><th>메뉴</th><th>구분</th><th>고객사명</th><th>담당자</th><th>비고</th><th>일시</th></tr></thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+        <p class="hint" style="margin-top:14px">라이선스·모델·조직의 생성/수정/삭제 이력이 모두 기록되며, 조직 삭제 후에도 이력은 계속 남습니다.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="footer" id="page-footer"></div>
+
+<div class="modal-backdrop" id="auth-modal-backdrop">
+  <div class="card modal-box">
+    <button type="button" class="modal-close" id="auth-modal-close"><span class="msi">close</span></button>
+    <p class="modal-title" id="auth-modal-title">Server &amp; Native 인증</p>
+    <p class="hint" id="auth-modal-sub">최초 실행 시 설치 환경에 표시된 Pub 코드를 입력하면 Supply 코드가 발급됩니다.</p>
+    <div class="row" style="margin-top:14px;margin-bottom:8px">
+      <span class="label" style="width:100px">Pub 코드</span>
+      <input type="text" id="modal-pub-input" placeholder="Pub 코드 입력" style="flex:1">
+      <button class="btn" type="button" id="modal-pub-confirm">확인</button>
+    </div>
+    <div class="row" id="modal-supply-row" style="display:none">
+      <span class="label" style="width:100px">Supply 코드</span>
+      <div class="box" style="background:#EAF1FE;border-color:#B7D0FB"><b id="modal-supply-value">-</b></div>
+    </div>
+    <p class="hint" style="margin:8px 0 0" id="auth-modal-footnote">Supply 코드를 설치된 환경에 입력하면 인증이 완료되고, 해당 기기의 Mac Address 정보가 자동 등록됩니다.</p>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="neworg-modal-backdrop">
+  <div class="card modal-box">
+    <button type="button" class="modal-close" id="neworg-modal-close"><span class="msi">close</span></button>
+    <p class="modal-title" id="neworg-modal-title">신규 조직 등록</p>
+    <p class="hint">고객사명과 딜 코드(Pipedrive)는 필수 입력입니다.</p>
+    <div class="field" style="max-width:none;margin-bottom:16px">
+      <p class="fieldlabel" style="font-size:13px">고객사명 <span style="color:#B91C1C">*</span></p>
+      <input type="text" id="neworg-name-input" placeholder="고객사명 입력" style="width:100%">
+    </div>
+    <div class="field" style="max-width:none;margin-bottom:16px">
+      <p class="fieldlabel" style="font-size:13px">딜 코드 (Pipedrive) <span style="color:#B91C1C">*</span></p>
+      <input type="text" id="neworg-deal-input" placeholder="예: DEAL-1000" style="width:100%">
+    </div>
+    <div class="field" style="max-width:none;margin-bottom:20px">
+      <p class="fieldlabel" style="font-size:13px">설명 <span style="color:#8A94A6;font-weight:400">(선택)</span></p>
+      <textarea id="neworg-desc-input" rows="2"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button type="button" class="btn" id="neworg-cancel-btn" style="flex:1">취소</button>
+      <button type="button" class="btn-block" id="neworg-submit-btn" style="margin:0;flex:1">등록</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="delorg-modal-backdrop">
+  <div class="card modal-box">
+    <button type="button" class="modal-close" id="delorg-modal-close"><span class="msi">close</span></button>
+    <p class="modal-title">조직 삭제</p>
+    <p class="hint" id="delorg-modal-desc" style="margin-bottom:0">정말 이 조직을 삭제하시겠습니까?</p>
+    <div id="delorg-dependency-box"></div>
+    <hr class="divider" style="margin:18px 0">
+    <div style="display:flex;gap:10px">
+      <button type="button" class="btn" id="delorg-cancel-btn" style="flex:1">취소</button>
+      <button type="button" class="btn-block" id="delorg-confirm-btn" style="margin:0;flex:1;background:#B91C1C">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="app-toast"></div>
+
+<script>
+function qs(s,el){return (el||document).querySelector(s)}
+function qsa(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))}
+function nowStr(){
+  var d = new Date();
+  function p(n){return (n<10?'0':'')+n;}
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function randHex(n){
+  var s = '';
+  for(var i=0;i<n;i++){ s += Math.floor(Math.random()*16).toString(16).toUpperCase(); }
+  return s;
+}
+var toastTimer = null;
+function showToast(msg){
+  var el = qs('#app-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+}
+
+var footers = {
+  status: '', issue: '', model: '', org: '', history: '', modelcreate: ''
+};
+var pages = ['status','issue','model','modelcreate','org','history'];
+
+function showPage(id){
+  pages.forEach(function(p){
+    qs('#page-'+p).style.display = (p===id) ? 'block' : 'none';
+  });
+  qsa('.lnbitem').forEach(function(el){ el.classList.toggle('active', el.dataset.page===id); });
+  qs('#page-footer').style.display = footers[id] ? 'flex' : 'none';
+  qs('#page-footer').innerHTML = footers[id];
+}
+qsa('.lnbitem').forEach(function(el){
+  el.addEventListener('click', function(){ showPage(el.dataset.page); });
+});
+qsa('.crumb-link').forEach(function(el){
+  el.addEventListener('click', function(){ showPage(el.dataset.crumb); });
+});
+qs('#new-issue-btn').addEventListener('click', function(){ showPage('issue'); updateIssueSubmitBtnState(); });
+function setModelCreateCrumb(label, targetPage){
+  var el = qs('#modelcreate-crumb-prefix');
+  el.textContent = label;
+  el.dataset.crumb = targetPage;
+}
+var modelCreateOrgContext = null;
+qs('#new-model-btn').addEventListener('click', function(){
+  modelCreateOrgContext = null;
+  setModelCreateCrumb('모델 관리', 'model');
+  showPage('modelcreate');
+});
+
+/* ---- 고객사 검색 콤보박스 ---- */
+var ORG_LIST = ['A금융','B증권','C은행','D캐피탈'];
+var orgInput = qs('#org-search-input');
+var orgPanel = qs('#org-search-panel');
+function renderOrgPanel(filter){
+  var list = ORG_LIST.filter(function(n){ return n.indexOf(filter) !== -1; });
+  if(!list.length){ orgPanel.style.display = 'none'; return; }
+  orgPanel.innerHTML = list.map(function(n){ return '<div class="opt" data-org="'+n+'"><div class="optmeta">'+n+'</div></div>'; }).join('');
+  orgPanel.style.display = 'block';
+  qsa('.opt', orgPanel).forEach(function(row){
+    row.addEventListener('click', function(){
+      orgInput.value = row.dataset.org;
+      orgPanel.style.display = 'none';
+      updateIssueSubmitBtnState();
+    });
+  });
+}
+function updateIssueSubmitBtnState(){
+  var btn = qs('#issue-submit-btn');
+  if(!btn) return;
+  var filled = orgInput.value.trim().length > 0;
+  btn.disabled = !filled;
+  btn.style.opacity = filled ? '1' : '0.5';
+  btn.style.cursor = filled ? 'pointer' : 'not-allowed';
+}
+orgInput.addEventListener('input', function(){ renderOrgPanel(orgInput.value.trim()); updateIssueSubmitBtnState(); });
+orgInput.addEventListener('focus', function(){ renderOrgPanel(orgInput.value.trim()); });
+document.addEventListener('click', function(ev){
+  if(!ev.target.closest('.combowrap')){ orgPanel.style.display = 'none'; }
+});
+updateIssueSubmitBtnState();
+
+/* ---- 시작일/종료일 ---- */
+(function(){
+  var today = new Date();
+  function p(n){return (n<10?'0':'')+n;}
+  var todayStr = today.getFullYear()+'-'+p(today.getMonth()+1)+'-'+p(today.getDate());
+  qs('#start-date-input').value = todayStr;
+})();
+qs('#perm-btn').addEventListener('click', function(){
+  qs('#end-date-input').value = '2099-12-31';
+});
+qs('#issue-submit-btn').addEventListener('click', function(){ issueLicense(); });
+qs('#model-complete-btn').addEventListener('click', function(){ completeModelCreate(); });
+
+/* ---- 확장 기능 (발급) ---- */
+var EXT_DEFS = [
+  { key:'detect', label:'Detect Extension', subs:[
+    {key:'detect_detect', label:'Detect'},
+    {key:'detect_landmark', label:'Landmark'},
+    {key:'detect_validate', label:'Validate'}
+  ]},
+  { key:'feature', label:'Feature Extension', subs:[
+    {key:'feature_feature', label:'Feature'},
+    {key:'feature_quality', label:'Quality'}
+  ]},
+  { key:'attribute', label:'Attribute Extension', subs:[
+    {key:'attr_agegender', label:'Age & Gender'},
+    {key:'attr_expression', label:'Expression'},
+    {key:'attr_occlusion', label:'Occlusion'},
+    {key:'attr_mask', label:'Mask'}
+  ]},
+  { key:'antispoof', label:'Antispoofing Extension', subs:[
+    {key:'as_depth', label:'Depth'},
+    {key:'as_ir', label:'IR'},
+    {key:'as_blink', label:'Blink'},
+    {key:'as_bgr', label:'BGR'},
+    {key:'as_fasq', label:'FAS Quality'}
+  ]}
+];
+var EXT_LABELS = [ {k:'detect', l:'Detect Extension'}, {k:'feature', l:'Feature Extension'}, {k:'attribute', l:'Attribute Extension'}, {k:'antispoof', l:'Antispoofing Extension'} ];
+var selectedExt = { detect:true, feature:true, attribute:true, antispoof:true };
+var issuanceState = { cipher:'AES' };
+
+qsa('.ext-btn[data-ext]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    btn.classList.toggle('sel');
+    selectedExt[btn.dataset.ext] = btn.classList.contains('sel');
+  });
+});
+qs('#cipher-aes').addEventListener('change', function(){ issuanceState.cipher = 'AES'; });
+qs('#cipher-seed').addEventListener('change', function(){ issuanceState.cipher = 'SEED'; });
+
+/* ---- 라이선스 검증 + 플랫폼 (단일 선택) ---- */
+qs('#checkfile-toggle').addEventListener('change', function(e){
+  qs('#checkfile-warning').style.display = e.target.checked ? 'none' : 'block';
+  qs('#platform-section').style.display = e.target.checked ? 'block' : 'none';
+});
+
+var PLATFORM_DEFS = [
+  {key:'web', label:'Web'},
+  {key:'ios', label:'App (iOS)'},
+  {key:'aos', label:'App (AOS)'},
+  {key:'server', label:'Server & Native'}
+];
+var PLATFORM_LABEL = { web:'Web', ios:'App (iOS)', aos:'App (AOS)', server:'Server & Native' };
+var selectedPlatform = { web:false, ios:false, aos:false, server:false };
+
+function platformFieldHtml(key){
+  if(key==='web'){
+    return '<div class="field"><p class="fieldlabel" style="font-size:13px">Domain</p><input type="text" placeholder="example.com" style="width:100%"></div>';
+  }
+  if(key==='ios'){
+    return '<div class="field"><p class="fieldlabel" style="font-size:13px">Bundle ID</p><input type="text" placeholder="com.company.app" style="width:100%"></div>';
+  }
+  if(key==='aos'){
+    return '<div class="field"><p class="fieldlabel" style="font-size:13px">Package Name</p><input type="text" placeholder="com.company.app" style="width:100%"></div>'+
+           '<div class="field"><p class="fieldlabel" style="font-size:13px">Signing Key (SHA-256)</p><input type="text" placeholder="SHA-256 값 입력" style="width:100%"></div>';
+  }
+  if(key==='server'){
+    return '<div class="summarycard">'+
+      '<p class="fieldlabel" style="margin-bottom:8px;font-size:13px">Server &amp; Native 인증</p>'+
+      '<p class="hint" style="margin:0">최초 실행 시 실행된 기기의 Mac Address 정보가 자동 등록되며, 이후 실행 시 해당 Mac Address가 확인되어야 모델이 동작합니다. Pub/Supply 코드를 통한 기기 인증은 발급 완료 후 <b>라이선스 관리</b> 화면에서 진행합니다.</p>'+
+    '</div>';
+  }
+  return '';
+}
+
+function renderPlatformFields(){
+  var html = PLATFORM_DEFS.filter(function(p){return selectedPlatform[p.key];})
+    .map(function(p){ return platformFieldHtml(p.key); }).join('');
+  qs('#platform-fields').innerHTML = html;
+}
+qsa('.ext-btn[data-platform]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var wasSel = btn.classList.contains('sel');
+    qsa('.ext-btn[data-platform]').forEach(function(b){
+      b.classList.remove('sel');
+      selectedPlatform[b.dataset.platform] = false;
+    });
+    if(!wasSel){
+      btn.classList.add('sel');
+      selectedPlatform[btn.dataset.platform] = true;
+    }
+    renderPlatformFields();
+  });
+});
+
+/* ---- 모델 생성: DNN Type / 확장 기능 하위 모델별 버전 ---- */
+function mkV(prefix, desc){
+  return {
+    OPENCV:[{v:prefix+'-cv-1.0', desc:desc+' · OpenCV 백엔드 · 예시(확인 필요)', latest:true}],
+    NCNN:[{v:prefix+'-ncnn-1.2', desc:desc+' · 경량 추론(Android/CPU)', latest:true},
+          {v:prefix+'-ncnn-1.1', desc:desc+' · 이전 버전', latest:false}],
+    TENSORRT:[{v:prefix+'-trt-1.0', desc:desc+' · GPU 가속 · 예시(확인 필요)', latest:true}],
+    TORCH:[{v:prefix+'-torch-1.3', desc:desc+' · 고정밀(Windows/Server)', latest:true},
+           {v:prefix+'-torch-1.2', desc:desc+' · 이전 버전', latest:false}]
+  };
+}
+var VERSIONS = {
+  detect_detect:   mkV('det',  '얼굴 검출'),
+  detect_landmark: mkV('lmk',  '랜드마크 추출'),
+  detect_validate: mkV('val',  '얼굴 유효성 검증'),
+  feature_feature: {
+    NCNN:[{v:'GFN-2', desc:'얼굴 특징값 추출 · 고용량', latest:true},
+          {v:'R100', desc:'얼굴 특징값 추출 · 이전 버전', latest:false}],
+    TORCH:[{v:'GFN-2t', desc:'얼굴 특징값 추출 · Windows/Server · 고용량', latest:true},
+           {v:'R100t', desc:'얼굴 특징값 추출 · 이전 버전', latest:false}],
+    OPENCV:[{v:'feat-cv-1.0', desc:'얼굴 특징값 추출 · OpenCV 백엔드 · 예시(확인 필요)', latest:true}],
+    TENSORRT:[{v:'feat-trt-1.0', desc:'얼굴 특징값 추출 · GPU 가속 · 예시(확인 필요)', latest:true}]
+  },
+  feature_quality: {
+    NCNN:[{v:'fiqa-1_1.11.0', desc:'얼굴 품질 점수 산출 · Android, 저사양 장비', latest:true},
+          {v:'fiqa-1_1.10.0', desc:'얼굴 품질 점수 산출 · 이전 버전', latest:false}],
+    TORCH:[{v:'fiqa-2_1.4.0', desc:'얼굴 품질 점수 산출 · Windows/Server', latest:true},
+           {v:'fiqa-2_1.3.0', desc:'얼굴 품질 점수 산출 · 이전 버전', latest:false}],
+    OPENCV:[{v:'fiqa-cv-1.0', desc:'얼굴 품질 점수 산출 · OpenCV 백엔드 · 예시(확인 필요)', latest:true}],
+    TENSORRT:[{v:'fiqa-trt-1.0', desc:'얼굴 품질 점수 산출 · GPU 가속 · 예시(확인 필요)', latest:true}]
+  },
+  attr_agegender:  mkV('age',   '나이·성별 추정'),
+  attr_expression: mkV('expr',  '표정 인식'),
+  attr_occlusion:  mkV('occ',  '가림(선글라스·마스크 등) 인식'),
+  attr_mask:       mkV('mask', '마스크 착용 여부 판별'),
+  as_depth: mkV('depth', '깊이 카메라 기반 라이브니스'),
+  as_ir:    mkV('ir',    'IR 카메라 기반 라이브니스'),
+  as_blink: mkV('blink', '눈 깜빡임 기반 라이브니스'),
+  as_bgr: {
+    NCNN:[{v:'BGR-14.7', desc:'RGB 카메라 기반 라이브니스 · Client-Only, 저사양 · 저용량', latest:true},
+          {v:'BGR-14.5', desc:'RGB 카메라 기반 라이브니스 · 이전 버전', latest:false}],
+    TORCH:[{v:'BGR-15.x', desc:'RGB 카메라 기반 라이브니스 · Windows, Server, 고성능 · 고용량', latest:true},
+           {v:'BGR-14.9', desc:'RGB 카메라 기반 라이브니스 · 이전 버전', latest:false}],
+    OPENCV:[{v:'bgr-cv-1.0', desc:'RGB 카메라 기반 라이브니스 · OpenCV 백엔드 · 예시(확인 필요)', latest:true}],
+    TENSORRT:[{v:'bgr-trt-1.0', desc:'RGB 카메라 기반 라이브니스 · GPU 가속 · 예시(확인 필요)', latest:true}]
+  },
+  as_fasq: mkV('fasq', 'Anti-Spoofing 품질 점수')
+};
+var modelState = { dnn:'NCNN', picked:{}, openKey:null, notProvided:{} };
+
+function renderModelSummary(){
+  var names = EXT_DEFS.filter(function(e){return selectedExt[e.key];}).map(function(e){return e.label;});
+  qs('#model-ext-summary').innerHTML = names.map(function(n){return '<span class="chip">'+n+'</span>';}).join('') +
+    '<span class="badge" style="background:#F4F6FA;color:#6B7280;margin-left:auto">자동 인식됨 · 읽기전용</span>';
+  qs('#model-cipher-summary').textContent = issuanceState.cipher;
+}
+
+function renderSubField(sub){
+  var key = sub.key;
+  var notProvided = !!modelState.notProvided[key];
+  var opts = (VERSIONS[key] && VERSIONS[key][modelState.dnn]) || [];
+  if(!modelState.picked[key] || !opts.some(function(o){return o.v===modelState.picked[key];})){
+    modelState.picked[key] = opts.length ? opts[0].v : null;
+  }
+  var current = modelState.picked[key];
+  var isOpen = modelState.openKey === key && !notProvided;
+  var currentItem = opts.filter(function(o){return o.v===current;})[0];
+  var optionsHtml = opts.map(function(o){
+    return '<div class="opt" data-key="'+key+'" data-v="'+o.v+'">'+
+      '<span class="msi checkicon" style="color:#2F6FED;font-size:18px;visibility:'+(o.v===current?'visible':'hidden')+'">check</span>'+
+      '<div class="optmeta"><b>'+o.v+'</b>'+(o.latest?' <span class="badge" style="background:#EAF1FE;color:#2F6FED">Latest</span>':'')+'<br>'+
+      '<span style="color:#8A94A6">'+o.desc+'</span></div></div>';
+  }).join('');
+  return '<div class="field" style="margin-bottom:16px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:10px">'+
+    '<p class="fieldlabel" style="font-size:13px;margin:0">'+sub.label+'</p>'+
+    '<label class="checklabel" style="font-size:12px;color:#6B7280;margin:0;gap:6px;flex-shrink:0"><input type="checkbox" data-notprovided="'+key+'" '+(notProvided?'checked':'')+' style="width:15px;height:15px">제공 안 함</label>'+
+    '</div>'+
+    '<div style="position:relative">'+
+    '<div class="box ext-dd-trigger" data-key="'+key+'" style="justify-content:space-between'+(notProvided?';cursor:not-allowed;opacity:.55;background:#F4F6FA':';cursor:pointer')+'">'+
+    '<span>'+(notProvided ? '제공 안 함' : (current || '선택 안 됨')) +
+    (!notProvided && currentItem && currentItem.latest ? ' <span class="badge" style="background:#EAF1FE;color:#2F6FED">Latest</span>' : '') +
+    '</span><span class="msi" style="color:#8A94A6;font-size:18px;transition:transform .15s'+(isOpen ? ';transform:rotate(180deg)' : '')+'">expand_more</span>'+
+    '</div>'+
+    (isOpen ? '<div class="optpanel" style="position:absolute;left:0;right:0;z-index:5;box-shadow:0 6px 16px rgba(16,24,40,.08)">'+optionsHtml+'</div>' : '')+
+    '</div></div>';
+}
+
+function renderExtRows(){
+  var html = EXT_DEFS.map(function(e){
+    var on = !!selectedExt[e.key];
+    var subsHtml = e.subs.map(function(sub){ return renderSubField(sub); }).join('');
+    return '<div class="extgroup">'+
+      '<div class="extgroup-head'+(on ? '' : ' off')+'">'+
+      '<input type="checkbox" disabled '+(on ? 'checked' : '')+'>'+
+      '<span>'+e.label+'</span>'+
+      '</div>'+
+      '<div class="extgroup-body">'+subsHtml+'</div>'+
+      '</div>';
+  }).join('');
+  qs('#ext-rows').innerHTML = html;
+  qsa('#ext-rows .ext-dd-trigger').forEach(function(trigger){
+    trigger.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var key = trigger.dataset.key;
+      if(modelState.notProvided[key]) return;
+      modelState.openKey = (modelState.openKey === key) ? null : key;
+      renderExtRows();
+    });
+  });
+  qsa('#ext-rows .opt').forEach(function(row){
+    row.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      modelState.picked[row.dataset.key] = row.dataset.v;
+      modelState.openKey = null;
+      renderExtRows();
+    });
+  });
+  qsa('#ext-rows [data-notprovided]').forEach(function(cb){
+    cb.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    cb.addEventListener('change', function(){
+      var key = cb.dataset.notprovided;
+      modelState.notProvided[key] = cb.checked;
+      if(cb.checked && modelState.openKey === key) modelState.openKey = null;
+      renderExtRows();
+    });
+  });
+}
+
+document.addEventListener('click', function(){
+  if(modelState.openKey !== null){
+    modelState.openKey = null;
+    renderExtRows();
+  }
+});
+
+qs('#dnn-select').addEventListener('change', function(e){
+  modelState.dnn = e.target.value;
+  renderExtRows();
+});
+
+var uploaded = false;
+qs('#upload-box').addEventListener('click', function(){
+  uploaded = !uploaded;
+  qs('#model-locked').style.display = uploaded ? 'none' : 'block';
+  qs('#model-fields').style.display = uploaded ? 'block' : 'none';
+  qs('#upload-label').textContent = uploaded ? 'license_20260707.cr (다시 클릭 시 초기화)' : '클릭하여 업로드 (프로토타입: 클릭 시뮬레이션)';
+  qs('#upload-box').style.borderStyle = uploaded ? 'solid' : 'dashed';
+  qs('#upload-box').style.background = uploaded ? '#F0FBF4' : '#FAFBFC';
+  if(uploaded){
+    renderModelSummary();
+    renderExtRows();
+  }
+});
+
+function openModelCreateForLicense(licenseId){
+  var l = licenses.filter(function(x){return x.id===licenseId;})[0];
+  if(!l) return;
+  modelCreateOrgContext = l.name;
+  Object.keys(selectedExt).forEach(function(k){ selectedExt[k] = !!l.ext[k]; });
+  issuanceState.cipher = l.cipher;
+  modelState.dnn = 'NCNN';
+  modelState.picked = {};
+  modelState.openKey = null;
+  modelState.notProvided = {};
+  uploaded = true;
+  qs('#dnn-select').value = 'NCNN';
+  qs('#model-locked').style.display = 'none';
+  qs('#model-fields').style.display = 'block';
+  qs('#upload-label').textContent = 'license_'+l.name+'_'+l.issued+'.cr (라이선스 관리에서 자동 연동)';
+  qs('#upload-box').style.borderStyle = 'solid';
+  qs('#upload-box').style.background = '#F0FBF4';
+  renderModelSummary();
+  renderExtRows();
+  setModelCreateCrumb('라이선스 관리', 'status');
+  showPage('modelcreate');
+}
+
+/* ---- 라이선스 관리 ---- */
+var licenses = [
+  { id:1, name:'A금융', licenseVersion:2, creator:'박소희', uuid:'1029', recordDate:'2026-07-14 19:25:56',
+    uniqueNumber:'1784024706592', issued:'2025-07-10', expiry:'2026-07-10', dday:3,
+    description:'License for A금융 from 2025-07-10T10:00:00.592Z 65ee76b8-0132-4340-bb1c-e1926fcd4235',
+    memo:'A금융_1년_Windows_정식 라이선스 발급', key:'49FE1F94F868C4C1C997EC2E05BB90BC',
+    checkFile:'Y', cipher:'AES', ext:{detect:true, feature:true, attribute:true, antispoof:true},
+    platform:'server', authStatus:'인증완료', authAt:'2026-07-15 09:12:40', isTest:false },
+  { id:2, name:'B증권', licenseVersion:2, creator:'이도현', uuid:'1031', recordDate:'2026-07-12 11:02:10',
+    uniqueNumber:'1784031120210', issued:'2025-07-12', expiry:'2026-07-12', dday:5,
+    description:'License for B증권 from 2025-07-12T09:40:00.101Z 4a1cc23f-8e21-4b0a-9d3e-1f2b3c4d5e6f',
+    memo:'B증권_1년_Web_정식 라이선스 발급', key:'7B2A0C1D9E8F4A3B2C1D0E9F8A7B6C5D',
+    checkFile:'Y', cipher:'AES', ext:{detect:true, feature:true, attribute:false, antispoof:true},
+    platform:'web', authStatus:'-', authAt:null, isTest:false },
+  { id:3, name:'C은행', licenseVersion:1, creator:'박소희', uuid:'1042', recordDate:'2026-08-01 16:10:33',
+    uniqueNumber:'1784080103360', issued:'2025-08-01', expiry:'2026-08-01', dday:25,
+    description:'License for C은행 from 2025-08-01T16:10:00.000Z 9c8d7e6f-5a4b-3c2d-1e0f-a1b2c3d4e5f6',
+    memo:'C은행_1년_iOS_정식 라이선스 발급', key:'3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F',
+    checkFile:'N', cipher:'SEED', ext:{detect:true, feature:true, attribute:true, antispoof:false},
+    platform:'ios', authStatus:'-', authAt:null, isTest:false },
+  { id:4, name:'D캐피탈', licenseVersion:2, creator:'김테스', uuid:'1055', recordDate:'2026-09-15 09:00:00',
+    uniqueNumber:'1784091500000', issued:'2025-09-15', expiry:'2026-09-15', dday:200,
+    description:'License for D캐피탈 from 2025-09-15T09:00:00.000Z 1a2b3c4d-5e6f-7a8b-9c0d-e1f2a3b4c5d6',
+    memo:'D캐피탈_1년_AOS_테스트 라이선스 발급', key:'8F7E6D5C4B3A2918F7E6D5C4B3A29187',
+    checkFile:'Y', cipher:'SEED', ext:{detect:false, feature:true, attribute:true, antispoof:true},
+    platform:'aos', authStatus:'-', authAt:null, isTest:true }
+];
+
+function nextLicenseId(){
+  return licenses.length ? Math.max.apply(null, licenses.map(function(l){return l.id;})) + 1 : 1;
+}
+function issueLicense(){
+  if(qs('#issue-submit-btn').disabled) return;
+  var orgName = qs('#org-search-input').value.trim();
+  if(!orgName){ alert('고객사를 입력해주세요.'); return; }
+  var start = qs('#start-date-input').value || nowStr().slice(0,10);
+  var end = qs('#end-date-input').value || '2026-12-31';
+  var memo = qs('#issue-memo-input').value.trim();
+  var ext = {};
+  Object.keys(selectedExt).forEach(function(k){ ext[k] = selectedExt[k]; });
+  var platformKey = Object.keys(selectedPlatform).filter(function(k){return selectedPlatform[k];})[0] || 'web';
+  var newId = nextLicenseId();
+  licenses.push({
+    id:newId, name:orgName, licenseVersion:2, creator:'박소희', uuid:String(1000+newId),
+    recordDate:nowStr(), uniqueNumber:String(Date.now()), issued:start, expiry:end, dday:daysUntil(end),
+    description:'License for '+orgName+' from '+nowStr(),
+    memo: memo || (orgName+'_라이선스 발급'),
+    key:randHex(32),
+    checkFile: qs('#checkfile-toggle').checked ? 'Y' : 'N',
+    cipher: issuanceState.cipher,
+    ext: ext, platform: platformKey, authStatus:'-', authAt:null,
+    isTest: qs('#issue-test-toggle').checked
+  });
+  logHistory('라이선스', '생성', orgName, '신규 발급');
+  showToast('라이선스 생성이 완료되었습니다');
+  selectedLicenseId = newId;
+  panelMode = 'view';
+  showPage('status');
+  renderTable();
+  renderDetailPanel();
+  renderHistoryTable();
+}
+
+var sortState = { key:'expiry', dir:'asc' };
+var pageState = { page:1, size:10 };
+var selectedLicenseId = null;
+var authModalLicenseId = null;
+var panelMode = 'view';
+
+function daysUntil(dateStr){
+  var target = new Date(dateStr+'T00:00:00');
+  var today = new Date('2026-07-15T00:00:00');
+  return Math.round((target - today) / 86400000);
+}
+
+function updateSortIcons(){
+  qsa('.thlabel').forEach(function(el){
+    var icon = el.querySelector('.sorticon');
+    if(el.dataset.key === sortState.key){
+      icon.textContent = sortState.dir==='asc' ? 'arrow_upward' : 'arrow_downward';
+      el.style.color = '#2F6FED';
+    } else {
+      icon.textContent = 'unfold_more';
+      el.style.color = '';
+    }
+  });
+}
+qsa('.thlabel').forEach(function(el){
+  el.addEventListener('click', function(){
+    var k = el.dataset.key;
+    if(sortState.key===k){ sortState.dir = sortState.dir==='asc' ? 'desc':'asc'; }
+    else { sortState.key = k; sortState.dir='asc'; }
+    updateSortIcons();
+    renderTable();
+  });
+});
+
+function authCellHtml(l){
+  if(l.authStatus === '인증완료'){
+    return '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">'+
+      '<span class="badge" style="background:#F0FBF4;color:#15803D">인증완료</span>'+
+      '<span style="font-size:11px;color:#98A2B3">'+(l.authAt || '-')+'</span>'+
+    '</div>';
+  }
+  return '<button type="button" class="btn" data-authid="'+l.id+'" style="padding:6px 12px;font-size:12px">인증</button>';
+}
+
+function renderPagination(totalItems){
+  var totalPages = Math.max(1, Math.ceil(totalItems / pageState.size));
+  if(pageState.page > totalPages) pageState.page = totalPages;
+  if(pageState.page < 1) pageState.page = 1;
+  qs('#pagination-controls').innerHTML =
+    '<button type="button" class="pagebtn" id="page-prev-btn"'+(pageState.page<=1?' disabled':'')+'><span class="msi" style="font-size:15px;vertical-align:-3px">chevron_left</span> 이전</button>'+
+    '<span style="font-size:13px;color:#6B7280">'+pageState.page+' / '+totalPages+'</span>'+
+    '<button type="button" class="pagebtn" id="page-next-btn"'+(pageState.page>=totalPages?' disabled':'')+'>다음 <span class="msi" style="font-size:15px;vertical-align:-3px">chevron_right</span></button>';
+  qs('#page-prev-btn').addEventListener('click', function(){
+    if(pageState.page>1){ pageState.page--; renderTable(); }
+  });
+  qs('#page-next-btn').addEventListener('click', function(){
+    if(pageState.page<totalPages){ pageState.page++; renderTable(); }
+  });
+  return totalPages;
+}
+
+function renderTable(){
+  var term = qs('#search-input').value.trim().toLowerCase();
+  var creatorTerm = qs('#search-creator-input').value.trim().toLowerCase();
+  var list = licenses.filter(function(l){
+    return l.name.toLowerCase().indexOf(term) !== -1 && l.creator.toLowerCase().indexOf(creatorTerm) !== -1;
+  });
+  list.sort(function(a,b){
+    var k = sortState.key, av=a[k], bv=b[k];
+    if(av<bv) return sortState.dir==='asc' ? -1:1;
+    if(av>bv) return sortState.dir==='asc' ? 1:-1;
+    return 0;
+  });
+  var totalPages = renderPagination(list.length);
+  var offset = (pageState.page - 1) * pageState.size;
+  var pageList = list.slice(offset, offset + pageState.size);
+  qs('#license-tbody').innerHTML = pageList.map(function(l){
+    var tier = l.dday<=7 ? 'danger' : (l.dday<=30 ? 'warning' : 'normal');
+    var label = l.dday<=30 ? ('D-'+l.dday) : '정상';
+    var bg = tier==='danger' ? '#FEE2E2' : tier==='warning' ? '#FEF3C7' : '#F0FBF4';
+    var fg = tier==='danger' ? '#B91C1C' : tier==='warning' ? '#B45309' : '#15803D';
+    var sel = l.id===selectedLicenseId ? ' selected' : '';
+    var checkCellHtml = l.checkFile === 'Y'
+      ? '<span class="badge" style="background:#F4F6FA;color:#6B7280">'+(PLATFORM_LABEL[l.platform] || l.platform)+'</span>'
+      : '<span class="badge" style="background:#F4F6FA;color:#98A2B3">N</span>';
+    var testCellHtml = l.isTest
+      ? '<span class="badge" style="background:#FEF3C7;color:#B45309">Y</span>'
+      : '<span class="badge" style="background:#F4F6FA;color:#98A2B3">N</span>';
+    return '<tr class="trow'+sel+'" data-id="'+l.id+'">'+
+      '<td>'+l.name+'</td>'+
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+l.description.replace(/"/g,'&quot;')+'">'+l.description+'</td>'+
+      '<td>'+l.issued+'</td>'+
+      '<td>'+l.expiry+'</td>'+
+      '<td><span class="badge" style="background:'+bg+';color:'+fg+'">'+label+'</span></td>'+
+      '<td>'+l.creator+'</td>'+
+      '<td>'+checkCellHtml+'</td>'+
+      '<td>'+testCellHtml+'</td>'+
+      '<td style="text-align:right">'+authCellHtml(l)+'</td>'+
+      '<td style="text-align:right"><button type="button" class="btn iconbtn" data-updateid="'+l.id+'" title="수정" style="padding:6px 10px;line-height:1"><span class="msi">edit</span></button></td>'+
+      '<td style="text-align:right"><button type="button" class="btn iconbtn" data-modelcreateid="'+l.id+'" title="모델 생성" style="padding:6px 10px;line-height:1"><span class="msi">arrow_forward</span></button></td>'+
+      '</tr>';
+  }).join('');
+  qs('#m-total').textContent = licenses.length + '건';
+  qs('#m-30').textContent = licenses.filter(function(l){return l.dday<=30}).length + '건';
+  qs('#m-7').textContent = licenses.filter(function(l){return l.dday<=7}).length + '건';
+  qsa('#license-tbody tr.trow').forEach(function(row){
+    row.addEventListener('click', function(){
+      selectedLicenseId = parseInt(row.dataset.id, 10);
+      panelMode = 'view';
+      renderTable();
+      renderDetailPanel();
+    });
+  });
+  qsa('#license-tbody [data-authid]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openAuthModal(parseInt(btn.dataset.authid, 10));
+    });
+  });
+  qsa('#license-tbody [data-updateid]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openEditFor(parseInt(btn.dataset.updateid, 10));
+    });
+  });
+  qsa('#license-tbody [data-modelcreateid]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openModelCreateForLicense(parseInt(btn.dataset.modelcreateid, 10));
+    });
+  });
+}
+qs('#search-input').addEventListener('input', function(){ pageState.page = 1; renderTable(); });
+qs('#search-creator-input').addEventListener('input', function(){ pageState.page = 1; renderTable(); });
+qs('#page-size-select').addEventListener('change', function(e){
+  pageState.size = parseInt(e.target.value, 10);
+  pageState.page = 1;
+  renderTable();
+});
+
+function closeDetailPanel(){
+  selectedLicenseId = null;
+  panelMode = 'view';
+  qs('#detail-wrap').classList.remove('open');
+  renderTable();
+}
+
+function openEditFor(id){
+  selectedLicenseId = id;
+  panelMode = 'edit';
+  renderTable();
+  renderDetailPanel();
+}
+
+function renderViewPanel(l){
+  var extRows = EXT_LABELS.map(function(e){
+    return '<div class="kvrow"><span class="kvlabel">'+e.l+'</span><span class="kvvalue">'+(l.ext[e.k] ? 'Y' : 'N')+'</span></div>';
+  }).join('');
+  var authArea = l.authStatus === '인증완료'
+    ? '<div style="display:flex;flex-direction:column;gap:4px">'+
+        '<span class="badge" style="background:#F0FBF4;color:#15803D;width:fit-content">인증완료</span>'+
+        '<span class="hint" style="margin:0">인증 일시: '+(l.authAt || '-')+'</span>'+
+      '</div>'
+    : '<button type="button" class="btn" data-authid="'+l.id+'">인증</button>';
+  return '<button type="button" class="detail-close" id="detail-close-btn"><span class="msi">close</span></button>'+
+    '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px">라이선스 상세 정보</h3>'+
+    '<p class="hint" style="margin-bottom:16px">선택한 라이선스의 상세 정보입니다</p>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">'+
+      '<button type="button" class="btn iconbtn" title="다운로드" onclick="alert(\'프로토타입: 실제 다운로드는 발생하지 않습니다\')"><span class="msi">download</span></button>'+
+      '<button type="button" class="btn iconbtn" id="detail-edit-btn" title="수정"><span class="msi">edit</span></button>'+
+      authArea+
+    '</div>'+
+    '<div class="kvgroup">'+
+      '<p class="kvgrouptitle">Meta Data</p>'+
+      '<div class="kvrow"><span class="kvlabel">License Version</span><span class="kvvalue">'+l.licenseVersion+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">고객사 (Org.)</span><span class="kvvalue">'+l.name+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">생성자</span><span class="kvvalue">'+l.creator+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">UUID</span><span class="kvvalue">'+l.uuid+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">등록일</span><span class="kvvalue">'+l.recordDate+'</span></div>'+
+    '</div>'+
+    '<div class="kvgroup">'+
+      '<p class="kvgrouptitle">License Data</p>'+
+      '<div class="kvrow"><span class="kvlabel">Unique Number</span><span class="kvvalue">'+l.uniqueNumber+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">시작일</span><span class="kvvalue">'+l.issued+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">종료일</span><span class="kvvalue">'+l.expiry+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">설명</span><span class="kvvalue">'+l.description+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">메모</span><span class="kvvalue">'+l.memo+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">Key</span><span class="kvvalue">'+l.key+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">라이선스 검증</span><span class="kvvalue">'+l.checkFile+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">암호화 방식</span><span class="kvvalue">'+l.cipher+'</span></div>'+
+      extRows+
+    '</div>';
+}
+
+function renderEditPanel(l){
+  var extBtns = EXT_LABELS.map(function(e){
+    var on = !!l.ext[e.k];
+    return '<button type="button" class="editext-btn'+(on?' sel':'')+'" data-editext="'+e.k+'">'+e.l+'</button>';
+  }).join('');
+  return '<button type="button" class="detail-close" id="detail-close-btn"><span class="msi">close</span></button>'+
+    '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px">라이선스 수정</h3>'+
+    '<p class="hint" style="margin-bottom:24px">'+l.name+' 라이선스 정보를 수정합니다</p>'+
+    '<div style="margin-bottom:26px">'+
+      '<p class="fieldlabel" style="font-size:13px;margin-bottom:10px">새 종료일</p>'+
+      '<div style="display:flex;gap:8px">'+
+        '<input type="date" id="edit-enddate-input" value="'+l.expiry+'" style="flex:1">'+
+        '<button type="button" class="btn" id="edit-perm-btn">영구</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-bottom:26px">'+
+      '<p class="fieldlabel" style="font-size:13px;margin-bottom:10px">메모</p>'+
+      '<textarea id="edit-memo-input" rows="2" style="width:100%">'+l.memo+'</textarea>'+
+    '</div>'+
+    '<div style="margin-bottom:26px">'+
+      '<p class="fieldlabel" style="font-size:13px;margin-bottom:10px">확장 기능 변경</p>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+extBtns+'</div>'+
+    '</div>'+
+    '<div style="margin-bottom:26px">'+
+      '<p class="fieldlabel" style="font-size:13px;margin-bottom:10px">라이선스 검증</p>'+
+      '<label class="checklabel" style="margin-bottom:0"><input type="checkbox" id="edit-checkfile-toggle" '+(l.checkFile==='Y'?'checked':'')+'>라이선스 검증 사용</label>'+
+    '</div>'+
+    '<div style="margin-bottom:28px">'+
+      '<p class="fieldlabel" style="font-size:13px;margin-bottom:10px">암호화 방식 변경</p>'+
+      '<div style="display:flex;gap:20px">'+
+        '<label class="radiolabel"><input type="radio" name="cipher-edit" id="cipher-edit-aes" '+(l.cipher==='AES'?'checked':'')+'>AES</label>'+
+        '<label class="radiolabel"><input type="radio" name="cipher-edit" id="cipher-edit-seed" '+(l.cipher==='SEED'?'checked':'')+'>SEED</label>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:10px">'+
+      '<button type="button" class="btn" id="edit-cancel-btn">취소</button>'+
+      '<button type="button" class="btn-block" id="edit-save-btn" style="margin:0;flex:1">변경사항 저장</button>'+
+    '</div>';
+}
+
+function isEditPanelDirty(l){
+  var endDateEl = qs('#edit-enddate-input');
+  if(endDateEl && endDateEl.value !== l.expiry) return true;
+  var memoEl = qs('#edit-memo-input');
+  if(memoEl && memoEl.value !== l.memo) return true;
+  var checkEl = qs('#edit-checkfile-toggle');
+  if(checkEl && (checkEl.checked ? 'Y' : 'N') !== l.checkFile) return true;
+  var extChanged = EXT_LABELS.some(function(e){
+    var btn = qs('[data-editext="'+e.k+'"]');
+    return btn && btn.classList.contains('sel') !== !!l.ext[e.k];
+  });
+  if(extChanged) return true;
+  var seedEl = qs('#cipher-edit-seed');
+  var cipher = seedEl && seedEl.checked ? 'SEED' : 'AES';
+  if(cipher !== l.cipher) return true;
+  return false;
+}
+function updateEditSaveBtnState(l){
+  var btn = qs('#edit-save-btn');
+  if(!btn) return;
+  var dirty = isEditPanelDirty(l);
+  btn.disabled = !dirty;
+  btn.style.opacity = dirty ? '1' : '0.5';
+  btn.style.cursor = dirty ? 'pointer' : 'not-allowed';
+}
+
+function renderDetailPanel(){
+  var l = licenses.filter(function(x){return x.id===selectedLicenseId;})[0];
+  var panel = qs('#detail-panel');
+  var wrap = qs('#detail-wrap');
+  if(!l){
+    wrap.classList.remove('open');
+    panel.innerHTML = '';
+    return;
+  }
+  wrap.classList.add('open');
+  panel.innerHTML = (panelMode === 'edit') ? renderEditPanel(l) : renderViewPanel(l);
+  qs('#detail-close-btn').addEventListener('click', closeDetailPanel);
+  if(panelMode === 'edit'){
+    qsa('#detail-panel [data-editext]').forEach(function(btn){
+      btn.addEventListener('click', function(){ btn.classList.toggle('sel'); updateEditSaveBtnState(l); });
+    });
+    qs('#edit-perm-btn').addEventListener('click', function(){
+      qs('#edit-enddate-input').value = '2099-12-31';
+      updateEditSaveBtnState(l);
+    });
+    qs('#edit-enddate-input').addEventListener('input', function(){ updateEditSaveBtnState(l); });
+    qs('#edit-memo-input').addEventListener('input', function(){ updateEditSaveBtnState(l); });
+    qs('#edit-checkfile-toggle').addEventListener('change', function(){ updateEditSaveBtnState(l); });
+    qs('#cipher-edit-aes').addEventListener('change', function(){ updateEditSaveBtnState(l); });
+    qs('#cipher-edit-seed').addEventListener('change', function(){ updateEditSaveBtnState(l); });
+    updateEditSaveBtnState(l);
+    qs('#edit-cancel-btn').addEventListener('click', function(){
+      panelMode = 'view';
+      renderDetailPanel();
+    });
+    qs('#edit-save-btn').addEventListener('click', function(){
+      if(qs('#edit-save-btn').disabled) return;
+      var newExpiry = qs('#edit-enddate-input').value || l.expiry;
+      l.expiry = newExpiry;
+      l.dday = daysUntil(newExpiry);
+      l.memo = qs('#edit-memo-input').value.trim();
+      l.checkFile = qs('#edit-checkfile-toggle').checked ? 'Y' : 'N';
+      qsa('#detail-panel [data-editext]').forEach(function(btn){
+        l.ext[btn.dataset.editext] = btn.classList.contains('sel');
+      });
+      l.cipher = qs('#cipher-edit-seed').checked ? 'SEED' : 'AES';
+      l.authStatus = '-';
+      l.authAt = null;
+      panelMode = 'view';
+      logHistory('라이선스', '수정', l.name, '정보 수정 (인증 상태 초기화)');
+      showToast('라이선스 정보가 수정되었습니다. 인증 상태가 초기화되었습니다.');
+      renderTable();
+      renderDetailPanel();
+      renderHistoryTable();
+    });
+  } else {
+    qsa('#detail-panel [data-authid]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openAuthModal(parseInt(btn.dataset.authid, 10)); });
+    });
+    qs('#detail-edit-btn').addEventListener('click', function(){
+      panelMode = 'edit';
+      renderDetailPanel();
+    });
+  }
+}
+
+function openAuthModal(id){
+  authModalLicenseId = id;
+  qs('#modal-pub-input').value = '';
+  qs('#modal-supply-value').textContent = '-';
+  qs('#modal-supply-row').style.display = 'none';
+  qs('#auth-modal-backdrop').style.display = 'flex';
+}
+function closeAuthModal(){
+  qs('#auth-modal-backdrop').style.display = 'none';
+  authModalLicenseId = null;
+}
+qs('#auth-modal-close').addEventListener('click', closeAuthModal);
+qs('#auth-modal-backdrop').addEventListener('click', function(ev){
+  if(ev.target === ev.currentTarget) closeAuthModal();
+});
+qs('#modal-pub-confirm').addEventListener('click', function(){
+  var code = 'SUPPLY-' + Math.floor(100000 + Math.random()*900000);
+  qs('#modal-supply-value').textContent = code;
+  qs('#modal-supply-row').style.display = 'flex';
+  var lic = licenses.filter(function(l){return l.id===authModalLicenseId;})[0];
+  if(lic){ lic.authStatus = '인증완료'; lic.authAt = nowStr(); }
+  renderTable();
+  renderDetailPanel();
+});
+
+/* ---- 모델 관리 (목록) ---- */
+var models = [
+  { id:1, org:'A금융', dnn:'NCNN', ext:['Detect','Feature','Attribute','Antispoofing'], cipher:'AES', creator:'박소희', createdAt:'2026-07-14 20:10:00', uuid:'2101', recordDate:'2026-07-14 20:10:00' },
+  { id:2, org:'B증권', dnn:'TORCH', ext:['Detect','Feature','Antispoofing'], cipher:'AES', creator:'이도현', createdAt:'2026-07-12 15:22:00', uuid:'2104', recordDate:'2026-07-12 15:22:00' },
+  { id:3, org:'C은행', dnn:'OPENCV', ext:['Detect','Feature','Attribute'], cipher:'SEED', creator:'박소희', createdAt:'2026-08-02 11:05:00', uuid:'2109', recordDate:'2026-08-02 11:05:00' }
+];
+var selectedModelId = null;
+
+function renderModelList(){
+  qs('#model-tbody').innerHTML = models.map(function(m){
+    var sel = m.id===selectedModelId ? ' selected' : '';
+    return '<tr class="trow'+sel+'" data-id="'+m.id+'">'+
+      '<td>'+m.org+'</td>'+
+      '<td>'+m.dnn+'</td>'+
+      '<td>'+m.ext.join(', ')+'</td>'+
+      '<td>'+m.cipher+'</td>'+
+      '<td>'+m.creator+'</td>'+
+      '<td>'+m.createdAt+'</td>'+
+      '<td style="text-align:right"><button type="button" class="btn iconbtn" data-modeldl="'+m.id+'" title="다운로드" style="padding:6px 10px;line-height:1"><span class="msi">download</span></button></td>'+
+      '</tr>';
+  }).join('');
+  qsa('#model-tbody tr.trow').forEach(function(row){
+    row.addEventListener('click', function(){
+      openModelDetail(parseInt(row.dataset.id, 10));
+    });
+  });
+  qsa('#model-tbody [data-modeldl]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      alert('프로토타입: 실제 다운로드는 발생하지 않습니다');
+    });
+  });
+}
+
+function pickVersion(key, dnn){
+  var opts = (VERSIONS[key] && VERSIONS[key][dnn]) || [];
+  if(!opts.length) return '-';
+  var latest = opts.filter(function(o){return o.latest;})[0];
+  return (latest || opts[0]).v;
+}
+
+function modelVersionsFor(m){
+  if(m.versions) return m.versions;
+  var v = {};
+  EXT_DEFS.filter(function(e){ return m.ext.indexOf(e.label.replace(' Extension','')) !== -1; })
+    .forEach(function(e){
+      e.subs.forEach(function(sub){ v[sub.key] = pickVersion(sub.key, m.dnn); });
+    });
+  return v;
+}
+
+function closeModelDetailPanel(){
+  selectedModelId = null;
+  qs('#model-detail-wrap').classList.remove('open');
+  renderModelList();
+}
+function openModelDetail(id){
+  selectedModelId = id;
+  renderModelList();
+  renderModelDetailPanel();
+}
+
+function renderModelDetailPanel(){
+  var m = models.filter(function(x){return x.id===selectedModelId;})[0];
+  var panel = qs('#model-detail-panel');
+  var wrap = qs('#model-detail-wrap');
+  if(!m){
+    wrap.classList.remove('open');
+    panel.innerHTML = '';
+    return;
+  }
+  wrap.classList.add('open');
+  var v = modelVersionsFor(m);
+  var modelRows = '<div style="margin-top:14px;padding-top:10px;border-top:1px solid #E4E7EC;font-size:12px;color:#98A2B3">Extension별 하위 모델</div>' +
+    EXT_DEFS.filter(function(e){ return m.ext.indexOf(e.label.replace(' Extension','')) !== -1; })
+    .map(function(e){
+      var subRows = e.subs.map(function(sub){
+        return '<div class="kvrow"><span class="kvlabel">'+sub.label+' Model</span><span class="kvvalue">'+(v[sub.key] || '<span style="color:#C4CAD4">제공 안 함</span>')+'</span></div>';
+      }).join('');
+      return '<div style="margin:10px 0 0 14px;padding-left:12px;border-left:2px solid #E4E7EC">'+
+        '<p style="font-size:12px;font-weight:600;color:#6B7280;margin:0 0 4px">'+e.label+'</p>'+
+        subRows+
+      '</div>';
+    }).join('');
+  panel.innerHTML = '<button type="button" class="detail-close" id="model-detail-close-btn"><span class="msi">close</span></button>'+
+    '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px">모델 상세 정보</h3>'+
+    '<p class="hint" style="margin-bottom:16px">선택한 모델의 상세 정보입니다</p>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">'+
+      '<button type="button" class="btn iconbtn" title="다운로드" onclick="alert(\'프로토타입: 실제 다운로드는 발생하지 않습니다\')"><span class="msi">download</span></button>'+
+    '</div>'+
+    '<div class="kvgroup">'+
+      '<p class="kvgrouptitle">Meta Data</p>'+
+      '<div class="kvrow"><span class="kvlabel">고객사 (Org.)</span><span class="kvvalue">'+m.org+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">생성자</span><span class="kvvalue">'+m.creator+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">UUID</span><span class="kvvalue">'+m.uuid+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">등록일</span><span class="kvvalue">'+m.recordDate+'</span></div>'+
+    '</div>'+
+    '<div class="kvgroup">'+
+      '<p class="kvgrouptitle">Model Data</p>'+
+      '<div class="kvrow"><span class="kvlabel">DNN Type</span><span class="kvvalue">'+m.dnn+'</span></div>'+
+      '<div class="kvrow"><span class="kvlabel">암호화 방식</span><span class="kvvalue">'+m.cipher+'</span></div>'+
+      modelRows+
+    '</div>'+
+    '<div class="kvgroup">'+
+      '<p class="kvgrouptitle">License Data</p>'+
+      '<div class="kvrow"><span class="kvlabel">암호화 방식</span><span class="kvvalue">'+m.cipher+'</span></div>'+
+    '</div>';
+  qs('#model-detail-close-btn').addEventListener('click', closeModelDetailPanel);
+}
+
+function completeModelCreate(){
+  var orgLabel = modelCreateOrgContext || '미지정';
+  var extNames = EXT_DEFS.filter(function(e){return selectedExt[e.key];}).map(function(e){return e.label.replace(' Extension','');});
+  var newId = models.length ? Math.max.apply(null, models.map(function(m){return m.id;})) + 1 : 1;
+  var versions = {};
+  EXT_DEFS.filter(function(e){return selectedExt[e.key];}).forEach(function(e){
+    e.subs.forEach(function(sub){
+      if(modelState.notProvided[sub.key]) return;
+      versions[sub.key] = modelState.picked[sub.key] || pickVersion(sub.key, modelState.dnn);
+    });
+  });
+  var recordDate = nowStr();
+  models.push({ id:newId, org:orgLabel, dnn:modelState.dnn, ext:extNames, cipher:issuanceState.cipher, creator:'박소희', createdAt: recordDate, uuid:String(2100+newId), recordDate:recordDate, versions:versions });
+  logHistory('모델', '생성', orgLabel, 'DNN '+modelState.dnn+' 모델 생성');
+  showToast('모델 생성이 완료되었습니다');
+  renderModelList();
+  renderHistoryTable();
+  showPage('model');
+}
+
+/* ---- 이력 관리 ---- */
+var historyLog = [
+  { menu:'라이선스', type:'생성', org:'A금융', actor:'김테스', note:'신규 발급', at:'2025-07-10 14:22:00' },
+  { menu:'라이선스', type:'수정', org:'A금융', actor:'이테스', note:'종료일 연장', at:'2025-09-01 10:05:00' },
+  { menu:'라이선스', type:'생성', org:'B증권', actor:'김테스', note:'신규 발급', at:'2025-07-12 09:40:00' },
+  { menu:'라이선스', type:'생성', org:'C은행', actor:'박테스', note:'신규 발급', at:'2025-08-01 16:10:00' },
+  { menu:'모델', type:'생성', org:'A금융', actor:'박소희', note:'NCNN 모델 생성', at:'2026-07-14 20:10:00' },
+  { menu:'조직', type:'생성', org:'A금융', actor:'김영업', note:'신규 등록', at:'2025-07-01 09:00:00' },
+  { menu:'조직', type:'생성', org:'B증권', actor:'김영업', note:'신규 등록', at:'2025-07-05 09:00:00' },
+  { menu:'조직', type:'생성', org:'C은행', actor:'박영업', note:'신규 등록', at:'2025-07-20 09:00:00' },
+  { menu:'조직', type:'생성', org:'D캐피탈', actor:'이영업', note:'신규 등록', at:'2025-08-30 09:00:00' }
+];
+function orgManagerFor(name){
+  var entries = historyLog.filter(function(h){ return h.menu==='조직' && h.org===name && (h.type==='생성' || h.type==='수정'); });
+  if(!entries.length) return '-';
+  entries.sort(function(a,b){ return a.at < b.at ? 1 : (a.at > b.at ? -1 : 0); });
+  return entries[0].actor;
+}
+function historyBadge(type){
+  var bg = type==='생성' ? '#F0FBF4' : type==='수정' ? '#FEF3C7' : '#FEE2E2';
+  var fg = type==='생성' ? '#15803D' : type==='수정' ? '#B45309' : '#B91C1C';
+  return '<span class="badge" style="background:'+bg+';color:'+fg+'">'+type+'</span>';
+}
+function logHistory(menu, type, org, note){
+  historyLog.push({ menu:menu, type:type, org:org, actor:'박소희', note:note, at:nowStr() });
+}
+function renderHistoryTable(){
+  var sorted = historyLog.slice().sort(function(a,b){ return a.at < b.at ? 1 : (a.at > b.at ? -1 : 0); });
+  qs('#history-tbody').innerHTML = sorted.map(function(h){
+    return '<tr class="trow">'+
+      '<td>'+h.menu+'</td>'+
+      '<td>'+historyBadge(h.type)+'</td>'+
+      '<td>'+h.org+'</td>'+
+      '<td>'+h.actor+'</td>'+
+      '<td>'+h.note+'</td>'+
+      '<td>'+h.at+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+/* ---- 조직 관리 ---- */
+var orgs = [
+  { id:1, name:'A금융', dealCode:'DEAL-1001', desc:'', createdAt:'2025-07-01 09:00:00', deleted:false },
+  { id:2, name:'B증권', dealCode:'DEAL-1014', desc:'', createdAt:'2025-07-05 09:00:00', deleted:false },
+  { id:3, name:'C은행', dealCode:'DEAL-1022', desc:'', createdAt:'2025-07-20 09:00:00', deleted:false },
+  { id:4, name:'D캐피탈', dealCode:'DEAL-1035', desc:'', createdAt:'2025-08-30 09:00:00', deleted:false }
+];
+var orgModalMode = 'create';
+var orgModalEditId = null;
+var delOrgId = null;
+
+function renderOrgTable(){
+  qs('#org-tbody').innerHTML = orgs.filter(function(o){return !o.deleted;}).map(function(o){
+    return '<tr class="trow" data-id="'+o.id+'">'+
+      '<td>'+o.id+'</td>'+
+      '<td>'+o.name+'</td>'+
+      '<td>'+o.dealCode+'</td>'+
+      '<td>'+(o.desc ? o.desc : '<span style="color:#C4CAD4">-</span>')+'</td>'+
+      '<td>'+o.createdAt+'</td>'+
+      '<td>'+orgManagerFor(o.name)+'</td>'+
+      '<td style="text-align:right"><button type="button" class="btn iconbtn" data-updateorgid="'+o.id+'" title="수정" style="padding:6px 10px;line-height:1"><span class="msi">edit</span></button></td>'+
+      '<td style="text-align:right"><button type="button" class="btn iconbtn" data-delorgid="'+o.id+'" title="삭제" style="padding:6px 10px;line-height:1;color:#B91C1C;border-color:#FECACA"><span class="msi">delete</span></button></td>'+
+      '</tr>';
+  }).join('');
+  qsa('#org-tbody [data-updateorgid]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openEditOrgModal(parseInt(btn.dataset.updateorgid, 10));
+    });
+  });
+  qsa('#org-tbody [data-delorgid]').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openDeleteOrgModal(parseInt(btn.dataset.delorgid, 10));
+    });
+  });
+}
+
+var orgModalOriginal = null;
+function updateOrgSaveBtnState(){
+  var btn = qs('#neworg-submit-btn');
+  if(!btn) return;
+  if(orgModalMode !== 'edit' || !orgModalOriginal){
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    return;
+  }
+  var name = qs('#neworg-name-input').value.trim();
+  var deal = qs('#neworg-deal-input').value.trim();
+  var desc = qs('#neworg-desc-input').value.trim();
+  var dirty = name !== orgModalOriginal.name || deal !== orgModalOriginal.dealCode || desc !== orgModalOriginal.desc;
+  btn.disabled = !dirty;
+  btn.style.opacity = dirty ? '1' : '0.5';
+  btn.style.cursor = dirty ? 'pointer' : 'not-allowed';
+}
+qs('#neworg-name-input').addEventListener('input', updateOrgSaveBtnState);
+qs('#neworg-deal-input').addEventListener('input', updateOrgSaveBtnState);
+qs('#neworg-desc-input').addEventListener('input', updateOrgSaveBtnState);
+
+function openNewOrgModal(){
+  orgModalMode = 'create';
+  orgModalEditId = null;
+  orgModalOriginal = null;
+  qs('#neworg-modal-title').textContent = '신규 조직 등록';
+  qs('#neworg-name-input').value = '';
+  qs('#neworg-deal-input').value = '';
+  qs('#neworg-desc-input').value = '';
+  qs('#neworg-submit-btn').textContent = '등록';
+  qs('#neworg-modal-backdrop').style.display = 'flex';
+  updateOrgSaveBtnState();
+}
+function openEditOrgModal(id){
+  var o = orgs.filter(function(x){return x.id===id;})[0];
+  if(!o) return;
+  orgModalMode = 'edit';
+  orgModalEditId = id;
+  orgModalOriginal = { name:o.name, dealCode:o.dealCode, desc:o.desc };
+  qs('#neworg-modal-title').textContent = '조직 정보 수정';
+  qs('#neworg-name-input').value = o.name;
+  qs('#neworg-deal-input').value = o.dealCode;
+  qs('#neworg-desc-input').value = o.desc;
+  qs('#neworg-submit-btn').textContent = '저장';
+  qs('#neworg-modal-backdrop').style.display = 'flex';
+  updateOrgSaveBtnState();
+}
+function closeNewOrgModal(){
+  qs('#neworg-modal-backdrop').style.display = 'none';
+}
+qs('#new-org-btn').addEventListener('click', openNewOrgModal);
+qs('#neworg-modal-close').addEventListener('click', closeNewOrgModal);
+qs('#neworg-cancel-btn').addEventListener('click', closeNewOrgModal);
+qs('#neworg-modal-backdrop').addEventListener('click', function(ev){
+  if(ev.target === ev.currentTarget) closeNewOrgModal();
+});
+qs('#neworg-submit-btn').addEventListener('click', function(){
+  if(qs('#neworg-submit-btn').disabled) return;
+  var name = qs('#neworg-name-input').value.trim();
+  var deal = qs('#neworg-deal-input').value.trim();
+  var desc = qs('#neworg-desc-input').value.trim();
+  if(!name || !deal){
+    alert('고객사명과 딜 코드(Pipedrive)는 필수 입력입니다.');
+    return;
+  }
+  if(orgModalMode === 'edit'){
+    var o = orgs.filter(function(x){return x.id===orgModalEditId;})[0];
+    if(o){
+      o.name = name; o.dealCode = deal; o.desc = desc;
+      logHistory('조직', '수정', name, '정보 수정');
+    }
+    renderOrgTable();
+    renderHistoryTable();
+    closeNewOrgModal();
+    showToast('조직 정보가 수정되었습니다');
+  } else {
+    var newId = orgs.length ? Math.max.apply(null, orgs.map(function(o){return o.id;})) + 1 : 1;
+    orgs.push({ id:newId, name:name, dealCode:deal, desc:desc, createdAt: nowStr(), deleted:false });
+    logHistory('조직', '생성', name, '신규 등록');
+    renderOrgTable();
+    renderHistoryTable();
+    closeNewOrgModal();
+    showToast('조직이 등록되었습니다');
+  }
+});
+
+function openDeleteOrgModal(id){
+  var o = orgs.filter(function(x){return x.id===id;})[0];
+  if(!o) return;
+  delOrgId = id;
+  var relatedLicenses = licenses.filter(function(l){return l.name===o.name;});
+  var relatedModels = models.filter(function(m){return m.org===o.name;});
+  var hasDeps = relatedLicenses.length>0 || relatedModels.length>0;
+  qs('#delorg-modal-desc').textContent = o.name+' 조직을 삭제하시겠습니까?';
+  var depBox = qs('#delorg-dependency-box');
+  if(hasDeps){
+    var depLines = [];
+    if(relatedLicenses.length) depLines.push('<div style="margin-top:6px">· 발급된 라이선스 '+relatedLicenses.length+'건</div>');
+    if(relatedModels.length) depLines.push('<div style="margin-top:6px">· 생성된 모델 '+relatedModels.length+'건</div>');
+    depBox.innerHTML = '<div class="warnbox" style="display:block;margin:16px 0 0;line-height:1.6">'+
+      '<div style="font-weight:700"><span class="msi" style="font-size:16px;vertical-align:-3px;margin-right:2px">warning</span>이 조직에 연결된 데이터가 있어 삭제할 수 없습니다</div>'+
+      depLines.join('')+
+      '</div>';
+  } else {
+    depBox.innerHTML = '';
+  }
+  var confirmBtn = qs('#delorg-confirm-btn');
+  confirmBtn.disabled = hasDeps;
+  confirmBtn.style.opacity = hasDeps ? '0.5' : '1';
+  confirmBtn.style.cursor = hasDeps ? 'not-allowed' : 'pointer';
+  qs('#delorg-modal-backdrop').style.display = 'flex';
+}
+function closeDeleteOrgModal(){
+  qs('#delorg-modal-backdrop').style.display = 'none';
+  delOrgId = null;
+}
+qs('#delorg-modal-close').addEventListener('click', closeDeleteOrgModal);
+qs('#delorg-cancel-btn').addEventListener('click', closeDeleteOrgModal);
+qs('#delorg-modal-backdrop').addEventListener('click', function(ev){
+  if(ev.target === ev.currentTarget) closeDeleteOrgModal();
+});
+qs('#delorg-confirm-btn').addEventListener('click', function(){
+  if(qs('#delorg-confirm-btn').disabled) return;
+  var o = orgs.filter(function(x){return x.id===delOrgId;})[0];
+  if(o){
+    o.deleted = true;
+    logHistory('조직', '삭제', o.name, '삭제 처리');
+  }
+  renderOrgTable();
+  renderHistoryTable();
+  closeDeleteOrgModal();
+  showToast('조직이 삭제되었습니다');
+});
+
+updateSortIcons();
+renderTable();
+renderDetailPanel();
+renderModelList();
+renderOrgTable();
+renderHistoryTable();
+showPage('status');
+</script>
+</body>
+</html>
